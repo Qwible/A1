@@ -55,6 +55,54 @@ def rejection():
            break
     return x
 
+def beaconing(lightSensor, oldLightValue):
+    # set the motor variables
+    ci = 0 
+    mb = ev3.LargeMotor('outB') #left motor 
+    mc = ev3.LargeMotor('outC') #right motor
+    mb.run_direct(duty_cycle_sp=-50)
+    mc.run_direct(duty_cycle_sp=-50)
+    currentLightValue = lightSensor.value()
+
+    if checkBeconing(oldLightValue, currentLightValue):
+        mb.run_direct(duty_cycle_sp=-50)
+        mc.run_direct(duty_cycle_sp=-50)
+        currentLightValue = lightSensor.value()
+
+        while checkBeconing(oldLightValue, currentLightValue): 
+            mb.run_direct(duty_cycle_sp=-50)
+            mc.run_direct(duty_cycle_sp=-50)
+            currentLightValue = lightSensor.value()
+
+    else:
+        debug_print("nah")
+        adjustBeaconing(lightSensor, oldLightValue, ci)
+        currentLightValue = lightSensor.value()
+
+        if checkBeconing(oldLightValue, currentLightValue):
+            beaconing(lightSensor, oldLightValue)
+        
+def adjustBeaconing(lightSensor, oldLightValue, ci):
+    if (ci == 0):
+        mb.run_direct(duty_cycle_sp=-50)
+        mc.run_direct(duty_cycle_sp=-25)
+        currentLightValue = lightSensor.value()
+
+        if not checkBeconing(oldLightValue, currentLightValue):
+            adjustBeaconing(lightSensor, oldLightValue, ci+1)
+    elif (ci==1):
+        mb.run_direct(duty_cycle_sp=-25)
+        mc.run_direct(duty_cycle_sp=-150)
+        currentLightValue = lightSensor.value()
+
+
+
+def checkBeconing(oldLightValue, currentLightValue):
+    if (currentLightValue > oldLightValue):
+        return True
+    else:
+        return False
+
 def avoidance():
     debug_print('avoid')
     desiredDistance = 100
@@ -162,6 +210,8 @@ def main():
     # set the ultrasonic sensor variable
     leftSensor = ev3.UltrasonicSensor('in3')
     rightSensor = ev3.UltrasonicSensor('in2')
+    lightSensor = ev3.ColorSensor('in4')
+    lightSensor.mode='COL-AMBIENT'
 
     while True:
 
@@ -170,13 +220,25 @@ def main():
         mb.run_direct(duty_cycle_sp= -100)
         mc.run_direct(duty_cycle_sp= -100)
         time.sleep(s)
+        mb.run_direct(duty_cycle_sp= 0)
+        mc.run_direct(duty_cycle_sp= 0)
+        while True: 
+            debug_print("LIGHT: ")
+            debug_print(lightValue)
+
 
         leftSensorDistance = leftSensor.value()
         rightSensorDistance = rightSensor.value()
+        lightValue = lightSensor.value()
 
         if ((leftSensorDistance<100) or (rightSensorDistance<100)):
             avoidance()
             debug_print('out')
+        else if (lightValue > 20):
+            beaconing(lightSensor,lightValue)
+
+        # else if (LIGHT):
+        #     beaconing()
     
 
         
