@@ -61,6 +61,14 @@ def avoidance():
     leftFeedbackSignal = 0
     rightFeedbackSignal = 0
 
+    # set the motor variables
+    mb = ev3.LargeMotor('outB') #left motor 
+    mc = ev3.LargeMotor('outC') #right motor
+
+    # set the ultrasonic sensor variable
+    leftSensor = ev3.UltrasonicSensor('in3')
+    rightSensor = ev3.UltrasonicSensor('in2')
+
     Kp = 1.5
     Ki = 0
     Ku = 0
@@ -77,8 +85,14 @@ def avoidance():
 
     leftIntegral = 0
     rightIntegral = 0
+    
+    leftSensorDistance = leftSensor.value()
+    rightSensorDistance = rightSensor.value()
+    debug_print(leftSensorDistance)
+    debug_print(rightSensorDistance)
 
-    while True:
+    while ((leftSensorDistance<100) or (rightSensorDistance<100)):
+        debug_print("loop")
         initialTime = time.time() #gets the current time
 
         leftCurrentError = desiredDistance - leftFeedbackSignal #(r-b)
@@ -123,9 +137,7 @@ def avoidance():
         leftFeedbackSignal = leftSensorDistance
         rightFeedbackSignal = rightSensorDistance
 
-        if ((leftSensorDistance>100) or (rightSensorDistance>100)):
-            debug_print('break')
-            break
+       
 
 
 
@@ -152,16 +164,11 @@ def main():
     rightSensor = ev3.UltrasonicSensor('in2')
 
     while True:
-        
-        t = random.uniform(0, 1.5)
-        mb.run_direct(duty_cycle_sp=100)
-        mc.run_direct(duty_cycle_sp=-100)
-        time.sleep(t)
 
         s = rejection()*5
         debug_print(s)
-        mb.run_direct(duty_cycle_sp= 100)
-        mc.run_direct(duty_cycle_sp= 100)
+        mb.run_direct(duty_cycle_sp= -100)
+        mc.run_direct(duty_cycle_sp= -100)
         time.sleep(s)
 
         leftSensorDistance = leftSensor.value()
@@ -170,6 +177,10 @@ def main():
         if ((leftSensorDistance<100) or (rightSensorDistance<100)):
             avoidance()
             debug_print('out')
+    
+
+        
+
     
             
 
