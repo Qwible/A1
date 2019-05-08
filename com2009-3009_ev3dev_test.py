@@ -55,32 +55,27 @@ def rejection():
            break
     return x
 
-def beaconing(lightSensor, oldLightValue):
+def beaconing(mb, mc, lightSensor, oldLightValue):
+    debug_print("STARTED BEACONING")
     # set the motor variables
-    ci = 0 
-    mb = ev3.LargeMotor('outB') #left motor 
-    mc = ev3.LargeMotor('outC') #right motor
     mb.run_direct(duty_cycle_sp=-50)
     mc.run_direct(duty_cycle_sp=-50)
-    currentLightValue = lightSensor.value()
+    time.sleep(0.1)
+    mb.run_direct(duty_cycle_sp= 0)
+    mc.run_direct(duty_cycle_sp= 0)
 
+    currentLightValue = lightSensor.value()
     if checkBeconing(oldLightValue, currentLightValue):
+        debug_print("AFTER MOVING, EV3 GOT CLOSER TO THE LIGHT")
         mb.run_direct(duty_cycle_sp=-50)
         mc.run_direct(duty_cycle_sp=-50)
-        currentLightValue = lightSensor.value()
-
-        while checkBeconing(oldLightValue, currentLightValue): 
-            mb.run_direct(duty_cycle_sp=-50)
-            mc.run_direct(duty_cycle_sp=-50)
-            currentLightValue = lightSensor.value()
-
+        time.sleep(0.5)
+        mb.run_direct(duty_cycle_sp= 0)
+        mc.run_direct(duty_cycle_sp= 0)
+        beaconing(mb,mc,lightSensor,lightSensor.value())
     else:
-        debug_print("nah")
-        adjustBeaconing(lightSensor, oldLightValue, ci)
-        currentLightValue = lightSensor.value()
-
-        if checkBeconing(oldLightValue, currentLightValue):
-            beaconing(lightSensor, oldLightValue)
+        debug_print("STOPPING BEACONING, DIDNT MOVE CLOSER")
+  
         
 def adjustBeaconing(lightSensor, oldLightValue, ci):
     if (ci == 0):
@@ -90,11 +85,11 @@ def adjustBeaconing(lightSensor, oldLightValue, ci):
 
         if not checkBeconing(oldLightValue, currentLightValue):
             adjustBeaconing(lightSensor, oldLightValue, ci+1)
+    
     elif (ci==1):
         mb.run_direct(duty_cycle_sp=-25)
         mc.run_direct(duty_cycle_sp=-150)
         currentLightValue = lightSensor.value()
-
 
 
 def checkBeconing(oldLightValue, currentLightValue):
@@ -102,6 +97,7 @@ def checkBeconing(oldLightValue, currentLightValue):
         return True
     else:
         return False
+
 
 def avoidance():
     debug_print('avoid')
@@ -234,7 +230,11 @@ def main():
         if ((leftSensorDistance<100) or (rightSensorDistance<100)):
             avoidance()
             debug_print('out')
-        else if (lightValue > 20):
+        elif (lightValue > 50):
+            debug_print('THE ROBOT HAS STOPPED AS ITS CLOSE TO THE LIGHT')
+            input("Press Enter to continue...")
+
+        elif (lightValue > 20):
             beaconing(lightSensor,lightValue)
 
         # else if (LIGHT):
