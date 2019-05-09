@@ -206,7 +206,7 @@ def main():
     # set the ultrasonic sensor variable
     leftSensor = ev3.UltrasonicSensor('in3')
     rightSensor = ev3.UltrasonicSensor('in2')
-    lightSensor = ev3.ColorSensor('in4')
+    lightSensor = ev3.ColorSensor('in1')
     lightSensor.mode='COL-AMBIENT'
 
     while True:
