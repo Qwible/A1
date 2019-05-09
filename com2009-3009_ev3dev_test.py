@@ -108,88 +108,130 @@ def checkBeconing(oldLightValue, currentLightValue):
     else:
         return False
 
+# def randomWalk(mb, mc, leftSensor, rightSensor):
+#         debug_print("NEW SEARCH DIRECTION")
+#         t = random.uniform(0, 1.2)
+#         mb.run_direct(duty_cycle_sp=100)
+#         mc.run_direct(duty_cycle_sp=-100)
+#         time.sleep(t)
 
-def avoidance():
-    debug_print('avoid')
-    desiredDistance = 100
-    leftFeedbackSignal = 0
-    rightFeedbackSignal = 0
+#         mb.run_direct(duty_cycle_sp= -100)
+#         mc.run_direct(duty_cycle_sp= -100)
 
-    # set the motor variables
-    mb = ev3.LargeMotor('outB') #left motor 
-    mc = ev3.LargeMotor('outC') #right motor
+#         s = rejection()*5
+#         debug_print(s)
+#         ss = s//0.1
+#         ss = int(ss)
+#         for x in range(ss):
+#             time.sleep(0.1)
+                
 
-    # set the ultrasonic sensor variable
-    leftSensor = ev3.UltrasonicSensor('in3')
-    rightSensor = ev3.UltrasonicSensor('in2')
+def avoidance(mb, mc, leftSensor, rightSensor):
+        speed = -75
+        mb.run_direct(duty_cycle_sp=speed)
+        mc.run_direct(duty_cycle_sp=speed)
+        time.sleep(0.5)
+        mb.run_direct(duty_cycle_sp=0)
+        mc.run_direct(duty_cycle_sp=0)
 
-    Kp = 1.5
-    Ki = 0
-    Ku = 0
-    Kd = 0
-
-
-    # timePeriod = 0.1
-    timePeriod = 0.25
-
-    lastError = 0
-
-    rightCurrentError = 1000
-    leftCurrentError = 1000
-
-    leftIntegral = 0
-    rightIntegral = 0
-    
-    leftSensorDistance = leftSensor.value()
-    rightSensorDistance = rightSensor.value()
-    debug_print(leftSensorDistance)
-    debug_print(rightSensorDistance)
-
-    while ((leftSensorDistance<100) or (rightSensorDistance<100)):
-        debug_print("loop")
-        initialTime = time.time() #gets the current time
-
-        leftCurrentError = desiredDistance - leftFeedbackSignal #(r-b)
-        rightCurrentError = desiredDistance - rightFeedbackSignal #(r-b)
-
-        # leftIntegral = leftIntegral +(leftCurrentError*timePeriod)
-        # leftDerivative = (leftCurrentError - leftLastError)/timePeriod
-
-        # rightIntegral = rightIntegral +(rightCurrentError*timePeriod)
-        # rightDerivative = (rightCurrentError - rightLastError)/timePeriod    
-
-
-        leftMotorSpeed = (Kp * leftCurrentError) #+ (Ki*integral) + (Kd*derivative)
-        rightMotorSpeed = (Kp * rightCurrentError)
-        
-        # debug_print("U: ", u)
-        debug_print("Left Current error: ", leftCurrentError)
-        debug_print("Right Current error: ", rightCurrentError)
-
-        # us = u
-        # debug_print("US: ", us)
-
-        if (leftMotorSpeed > 100):
-            leftMotorSpeed = 100
-        elif (leftMotorSpeed<-100):
-            leftMotorSpeed=-100
-
-        if (rightMotorSpeed > 100):
-            rightMotorSpeed = 100
-        elif (rightMotorSpeed<-100):
-            rightMotorSpeed=-100
-
-        
-        mb.run_direct(duty_cycle_sp=leftMotorSpeed)
-        mc.run_direct(duty_cycle_sp=rightMotorSpeed)
-        waitPeriod = 0.07 - (time.time() - initialTime)
-        time.sleep(waitPeriod)
 
         leftSensorDistance = leftSensor.value()
         rightSensorDistance = rightSensor.value()
+        if (leftSensorDistance < 100):
+            mb.run_direct(duty_cycle_sp=0)
+            mc.run_direct(duty_cycle_sp=speed)
+            time.sleep(0.5)
+            mb.run_direct(duty_cycle_sp=0)
+            mc.run_direct(duty_cycle_sp=0)            
 
-        leftFeedbackSignal = leftSensorDistance
-        rightFeedbackSignal = rightSensorDistance
+        elif (rightSensorDistance < 100):
+            mb.run_direct(duty_cycle_sp=speed)
+            mc.run_direct(duty_cycle_sp=0)
+            time.sleep(0.5)
+            mb.run_direct(duty_cycle_sp=0)
+            mc.run_direct(duty_cycle_sp=0) 
+
+# def avoidance():
+#     debug_print('avoid')
+    # desiredDistance = 100
+    # leftFeedbackSignal = 0
+#     rightFeedbackSignal = 0
+
+#     # set the motor variables
+#     mb = ev3.LargeMotor('outB') #left motor 
+#     mc = ev3.LargeMotor('outC') #right motor
+
+#     # set the ultrasonic sensor variable
+#     leftSensor = ev3.UltrasonicSensor('in3')
+#     rightSensor = ev3.UltrasonicSensor('in2')
+
+#     Kp = 1.5
+#     Ki = 0
+#     Ku = 0
+#     Kd = 0
+
+
+#     # timePeriod = 0.1
+#     timePeriod = 0.25
+
+#     lastError = 0
+
+#     rightCurrentError = 1000
+#     leftCurrentError = 1000
+
+#     leftIntegral = 0
+#     rightIntegral = 0
+    
+#     leftSensorDistance = leftSensor.value()
+#     rightSensorDistance = rightSensor.value()
+#     debug_print(leftSensorDistance)
+#     debug_print(rightSensorDistance)
+
+#     while ((leftSensorDistance<100) or (rightSensorDistance<100)):
+#         debug_print("loop")
+#         initialTime = time.time() #gets the current time
+
+#         leftCurrentError = desiredDistance - leftFeedbackSignal #(r-b)
+#         rightCurrentError = desiredDistance - rightFeedbackSignal #(r-b)
+
+#         # leftIntegral = leftIntegral +(leftCurrentError*timePeriod)
+#         # leftDerivative = (leftCurrentError - leftLastError)/timePeriod
+
+#         # rightIntegral = rightIntegral +(rightCurrentError*timePeriod)
+#         # rightDerivative = (rightCurrentError - rightLastError)/timePeriod    
+
+
+#         leftMotorSpeed = (Kp * leftCurrentError) #+ (Ki*integral) + (Kd*derivative)
+#         rightMotorSpeed = (Kp * rightCurrentError)
+        
+#         # debug_print("U: ", u)
+#         debug_print("Left Current error: ", leftCurrentError)
+#         debug_print("Right Current error: ", rightCurrentError)
+
+#         # us = u
+#         # debug_print("US: ", us)
+
+#         if (leftMotorSpeed > 100):
+#             leftMotorSpeed = 100
+#         elif (leftMotorSpeed<-100):
+#             leftMotorSpeed=-100
+
+#         if (rightMotorSpeed > 100):
+#             rightMotorSpeed = 100
+#         elif (rightMotorSpeed<-100):
+#             rightMotorSpeed=-100
+
+        
+#         mb.run_direct(duty_cycle_sp=leftMotorSpeed)
+#         mc.run_direct(duty_cycle_sp=rightMotorSpeed)
+#         waitPeriod = 0.07 - (time.time() - initialTime)
+#         time.sleep(waitPeriod)
+
+#         leftSensorDistance = leftSensor.value()
+#         rightSensorDistance = rightSensor.value()
+
+#         leftFeedbackSignal = leftSensorDistance
+#         rightFeedbackSignal = rightSensorDistance
 
        
 
@@ -231,23 +273,42 @@ def main():
         # mc.run_direct(duty_cycle_sp= 0)
 
 
-        leftSensorDistance = leftSensor.value()
-        rightSensorDistance = rightSensor.value()
-        lightValue = lightSensor.value()
+        # leftSensorDistance = leftSensor.value()
+        # rightSensorDistance = rightSensor.value()
+        # lightValue = lightSensor.value()
 
-        debug_print(lightValue)
-        debug_print("    ")
 
-        # if ((leftSensorDistance<100) or (rightSensorDistance<100)):
-        #     avoidance()
-        #     debug_print('out')
-        if (lightValue > 20):
-            debug_print('THE ROBOT HAS STOPPED AS ITS CLOSE TO THE LIGHT')
-            input("Press Enter to continue...")
 
-        elif (lightValue > 14):
-            beaconing(mb, mc, lightSensor,lightValue)
-            # debug_print("CUURENTLY SHOULD BE BEACONING")
+        t = random.uniform(0, 1.2)
+        mb.run_direct(duty_cycle_sp=100)
+        mc.run_direct(duty_cycle_sp=-100)
+        time.sleep(t)
+
+        mb.run_direct(duty_cycle_sp= -100)
+        mc.run_direct(duty_cycle_sp= -100)
+
+        s = rejection()*5
+        debug_print(s)
+        ss = s//0.1
+        ss = int(ss)
+        for x in range(ss):
+            time.sleep(0.1)
+
+            lightValue = lightSensor.value()
+
+            leftSensorDistance = leftSensor.value()
+            rightSensorDistance = rightSensor.value()
+
+            if ((leftSensorDistance<100) or (rightSensorDistance<100)):
+                debug_print('AVOIDING')
+                avoidance(mb, mc, leftSensor, rightSensor)
+                debug_print('AVOIDING')
+            elif (lightValue > 20):
+                debug_print('THE ROBOT HAS STOPPED AS ITS CLOSE TO THE LIGHT')
+                input("Press Enter to continue...")
+            elif (lightValue > 14):
+                beaconing(mb, mc, lightSensor,lightValue)
+     
 
         # else if (LIGHT):
         #     beaconing()
