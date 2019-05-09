@@ -60,7 +60,7 @@ def beaconing(mb, mc, lightSensor, oldLightValue):
     # set the motor variables
     mb.run_direct(duty_cycle_sp=-50)
     mc.run_direct(duty_cycle_sp=-50)
-    time.sleep(0.1)
+    time.sleep(0.3)
     mb.run_direct(duty_cycle_sp= 0)
     mc.run_direct(duty_cycle_sp= 0)
 
@@ -74,22 +74,32 @@ def beaconing(mb, mc, lightSensor, oldLightValue):
         mc.run_direct(duty_cycle_sp= 0)
         beaconing(mb,mc,lightSensor,lightSensor.value())
     else:
-        debug_print("STOPPING BEACONING, DIDNT MOVE CLOSER")
+        debug_print("ADJUSTING BEACONING, DIDNT MOVE CLOSER")
+        # adjustBeaconing(mb, mc, lightSensor, oldLightValue)
+        # debug_print("STOPPING BEACONING, DIDNT MOVE CLOSER")
   
         
-def adjustBeaconing(lightSensor, oldLightValue, ci):
+def adjustBeaconing(mb, mc, lightSensor, oldLightValue, ci=0):
     if (ci == 0):
         mb.run_direct(duty_cycle_sp=-50)
         mc.run_direct(duty_cycle_sp=-25)
         currentLightValue = lightSensor.value()
 
-        if not checkBeconing(oldLightValue, currentLightValue):
-            adjustBeaconing(lightSensor, oldLightValue, ci+1)
+        if checkBeconing(oldLightValue, currentLightValue):
+            beaconing(mb,mc,lightSensor,lightSensor.value())
+
+        else:
+            adjustBeaconing(mb, mc, lightSensor, oldLightValue, ci+1)
     
     elif (ci==1):
         mb.run_direct(duty_cycle_sp=-25)
         mc.run_direct(duty_cycle_sp=-150)
         currentLightValue = lightSensor.value()
+        if checkBeconing(oldLightValue, currentLightValue):
+            beaconing(mb,mc,lightSensor,lightSensor.value())
+        else:
+            debug_print("STOPPING BEACONING, DIDNT MOVE CLOSER")
+
 
 
 def checkBeconing(oldLightValue, currentLightValue):
@@ -210,32 +220,34 @@ def main():
     lightSensor.mode='COL-AMBIENT'
 
     while True:
+        x = 1
 
-        s = rejection()*5
-        debug_print(s)
-        mb.run_direct(duty_cycle_sp= -100)
-        mc.run_direct(duty_cycle_sp= -100)
-        time.sleep(s)
-        mb.run_direct(duty_cycle_sp= 0)
-        mc.run_direct(duty_cycle_sp= 0)
-        while True: 
-            debug_print("LIGHT: ")
-            debug_print(lightValue)
+        # s = rejection()*5
+        # debug_print(s)
+        # mb.run_direct(duty_cycle_sp= -100)
+        # mc.run_direct(duty_cycle_sp= -100)
+        # time.sleep(s)
+        # mb.run_direct(duty_cycle_sp= 0)
+        # mc.run_direct(duty_cycle_sp= 0)
 
 
         leftSensorDistance = leftSensor.value()
         rightSensorDistance = rightSensor.value()
         lightValue = lightSensor.value()
 
-        if ((leftSensorDistance<100) or (rightSensorDistance<100)):
-            avoidance()
-            debug_print('out')
-        elif (lightValue > 50):
+        debug_print(lightValue)
+        debug_print("    ")
+
+        # if ((leftSensorDistance<100) or (rightSensorDistance<100)):
+        #     avoidance()
+        #     debug_print('out')
+        if (lightValue > 20):
             debug_print('THE ROBOT HAS STOPPED AS ITS CLOSE TO THE LIGHT')
             input("Press Enter to continue...")
 
-        elif (lightValue > 20):
-            beaconing(lightSensor,lightValue)
+        elif (lightValue > 14):
+            beaconing(mb, mc, lightSensor,lightValue)
+            # debug_print("CUURENTLY SHOULD BE BEACONING")
 
         # else if (LIGHT):
         #     beaconing()
