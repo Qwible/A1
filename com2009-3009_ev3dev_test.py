@@ -58,8 +58,6 @@ def rejection():
 def avoidance():
     debug_print('avoid')
     desiredDistance = 100
-    leftFeedbackSignal = 0
-    rightFeedbackSignal = 0
 
     # set the motor variables
     mb = ev3.LargeMotor('outB') #left motor 
@@ -69,73 +67,79 @@ def avoidance():
     leftSensor = ev3.UltrasonicSensor('in3')
     rightSensor = ev3.UltrasonicSensor('in2')
 
-    Kp = 1.5
-    Ki = 0
-    Ku = 0
-    Kd = 0
+    Kp = -1
+    Ki = -1
+    Kd = -1
 
+    previousError = integral = derivative = 0
+    
 
-    # timePeriod = 0.1
-    timePeriod = 0.25
 
     lastError = 0
 
-    rightCurrentError = 1000
-    leftCurrentError = 1000
 
     leftIntegral = 0
     rightIntegral = 0
     
     leftSensorDistance = leftSensor.value()
     rightSensorDistance = rightSensor.value()
-    debug_print(leftSensorDistance)
-    debug_print(rightSensorDistance)
+
+
 
     while ((leftSensorDistance<100) or (rightSensorDistance<100)):
-        debug_print("loop")
         initialTime = time.time() #gets the current time
 
-        leftCurrentError = desiredDistance - leftFeedbackSignal #(r-b)
-        rightCurrentError = desiredDistance - rightFeedbackSignal #(r-b)
+        if (leftSensorDistance<100) and (rightSensorDistance<100):
+            currentError = leftSensorDistance - rightSensorDistance
+            integral = (2/3)*integral + currentError 
+            derivative = currentError - previousError #change in error 
+            pid= (Kp * currentError) + (Ki * integral) + (Kd * derivative) # PID
+            pid = pid/10
 
-        # leftIntegral = leftIntegral +(leftCurrentError*timePeriod)
-        # leftDerivative = (leftCurrentError - leftLastError)/timePeriod
+            sp = -80
+            if pid > 40:
+                pid = 40
+            if pid < -40:
+                pid = -40
+            if pid > -5 and pid < 5:
+                pid=0
+            
+            ml.run_direct(duty_cycle_sp=sp+(2/4*pid))
+            mr.run_direct(duty_cycle_sp=sp-(2/4*pid))
+            
+            previousError = currentError
 
-        # rightIntegral = rightIntegral +(rightCurrentError*timePeriod)
-        # rightDerivative = (rightCurrentError - rightLastError)/timePeriod    
+        else:
+            leftCurrentError = desiredDistance -  leftSensorDistance 
+            rightCurrentError = desiredDistance -  rightSensorDistance
 
 
-        leftMotorSpeed = (Kp * leftCurrentError) #+ (Ki*integral) + (Kd*derivative)
-        rightMotorSpeed = (Kp * rightCurrentError)
-        
-        # debug_print("U: ", u)
-        debug_print("Left Current error: ", leftCurrentError)
-        debug_print("Right Current error: ", rightCurrentError)
+            leftMotorSpeed = (Kp * leftCurrentError)
+            rightMotorSpeed = (Kp * rightCurrentError)
 
-        # us = u
-        # debug_print("US: ", us)
+            debug_print('LEFT:'+leftMotorSpeed)
+            debug_print(+'RIGHT:'+rightMotorSpeed)
 
-        if (leftMotorSpeed > 100):
-            leftMotorSpeed = 100
-        elif (leftMotorSpeed<-100):
-            leftMotorSpeed=-100
+            if (leftMotorSpeed > 100):
+                leftMotorSpeed = 100
+            elif (leftMotorSpeed<-100):
+                leftMotorSpeed=-100
 
-        if (rightMotorSpeed > 100):
-            rightMotorSpeed = 100
-        elif (rightMotorSpeed<-100):
-            rightMotorSpeed=-100
+            if (rightMotorSpeed > 100):
+                rightMotorSpeed = 100
+            elif (rightMotorSpeed<-100):
+                rightMotorSpeed=-100
 
-        
-        mb.run_direct(duty_cycle_sp=leftMotorSpeed)
-        mc.run_direct(duty_cycle_sp=rightMotorSpeed)
+            
+            mb.run_direct(duty_cycle_sp=leftMotorSpeed)
+            mc.run_direct(duty_cycle_sp=rightMotorSpeed)
+
         waitPeriod = 0.07 - (time.time() - initialTime)
         time.sleep(waitPeriod)
 
         leftSensorDistance = leftSensor.value()
         rightSensorDistance = rightSensor.value()
 
-        leftFeedbackSignal = leftSensorDistance
-        rightFeedbackSignal = rightSensorDistance
 
        
 
@@ -164,19 +168,35 @@ def main():
     rightSensor = ev3.UltrasonicSensor('in2')
 
     while True:
+        debug_print("NEW SEARCH DIRECTION")
+        t = random.uniform(0, 1.2)
+        mb.run_direct(duty_cycle_sp=100)
+        mc.run_direct(duty_cycle_sp=-100)
+        time.sleep(t)
+
+        mb.run_direct(duty_cycle_sp= -100)
+        mc.run_direct(duty_cycle_sp= -100)
 
         s = rejection()*5
         debug_print(s)
-        mb.run_direct(duty_cycle_sp= -100)
-        mc.run_direct(duty_cycle_sp= -100)
-        time.sleep(s)
+        ss = s//0.1
+        ss = int(ss)
+        for x in range(ss):
+            leftSensorDistance = leftSensor.value()
+            rightSensorDistance = rightSensor.value()
+            if ((leftSensorDistance<100) or (rightSensorDistance<100)):
+                debug_print('AVOIDING')
+                avoidance()
+                debug_print('DONE AVOIDING')
+                break
+            time.sleep(0.1)
+        
+        
+                
 
-        leftSensorDistance = leftSensor.value()
-        rightSensorDistance = rightSensor.value()
+        
 
-        if ((leftSensorDistance<100) or (rightSensorDistance<100)):
-            avoidance()
-            debug_print('out')
+
     
 
         
