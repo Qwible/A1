@@ -128,11 +128,6 @@ def checkBeconing(oldLightValue, currentLightValue):
 
 def avoidance(mb, mc, leftSensor, rightSensor):
         speed = -75
-        mb.run_direct(duty_cycle_sp=speed)
-        mc.run_direct(duty_cycle_sp=speed)
-        time.sleep(0.5)
-        mb.run_direct(duty_cycle_sp=0)
-        mc.run_direct(duty_cycle_sp=0)
 
 
         leftSensorDistance = leftSensor.value()
@@ -301,7 +296,6 @@ def main():
             rightSensorDistance = rightSensor.value()
 
             if ((leftSensorDistance<100) or (rightSensorDistance<100)):
-                while ((leftSensorDistance<100) or (rightSensorDistance<100)):
                     debug_print('AVOIDING')
                     avoidance(mb, mc, leftSensor, rightSensor)
             elif (lightValue > 20):
