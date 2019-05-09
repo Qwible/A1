@@ -280,34 +280,41 @@ def main():
 
 
         t = random.uniform(0, 1.2)
-        mb.run_direct(duty_cycle_sp=100)
-        mc.run_direct(duty_cycle_sp=-100)
+        leftSensorDistance = leftSensor.value()
+        rightSensorDistance = rightSensor.value()
+        
+        mb.run_direct(duty_cycle_sp=75)
+        mc.run_direct(duty_cycle_sp=-75)
         time.sleep(t)
 
-        mb.run_direct(duty_cycle_sp= -100)
-        mc.run_direct(duty_cycle_sp= -100)
+        mb.run_direct(duty_cycle_sp= 0)
+        mc.run_direct(duty_cycle_sp= 0)
 
         s = rejection()*5
         debug_print(s)
         ss = s//0.1
         ss = int(ss)
         for x in range(ss):
-            time.sleep(0.1)
-
             lightValue = lightSensor.value()
 
             leftSensorDistance = leftSensor.value()
             rightSensorDistance = rightSensor.value()
 
             if ((leftSensorDistance<100) or (rightSensorDistance<100)):
-                debug_print('AVOIDING')
-                avoidance(mb, mc, leftSensor, rightSensor)
-                debug_print('AVOIDING')
+                while ((leftSensorDistance<100) or (rightSensorDistance<100)):
+                    debug_print('AVOIDING')
+                    avoidance(mb, mc, leftSensor, rightSensor)
             elif (lightValue > 20):
                 debug_print('THE ROBOT HAS STOPPED AS ITS CLOSE TO THE LIGHT')
                 input("Press Enter to continue...")
             elif (lightValue > 14):
                 beaconing(mb, mc, lightSensor,lightValue)
+            else:
+                mb.run_direct(duty_cycle_sp= -100)
+                mc.run_direct(duty_cycle_sp= -100)
+                time.sleep(0.1)
+                mb.run_direct(duty_cycle_sp= 0)
+                mc.run_direct(duty_cycle_sp= 0)
      
 
         # else if (LIGHT):
